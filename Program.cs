@@ -29,27 +29,29 @@ namespace AutofacDecorators
     public static class BuilderExtensions
     {
         public static void RegisterDecorated<TBase, TInterface>(this ContainerBuilder builder, params Type[] decorators)
+            where TBase : TInterface
         {
             builder.RegisterDecorated<TBase, TInterface>(typeof(TInterface).Name, decorators);
         }
 
         public static void RegisterDecorated<TBase, TInterface>(this ContainerBuilder builder, string keyBase, params Type[] decorators)
+            where TBase : TInterface
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (!typeof(TInterface).IsAssignableFrom(typeof(TBase)))
-            {
-                throw new ArgumentException("Incompatibile base type with expected interface!");
-            }
-
             if (!decorators.Any())
             {
                 throw new ArgumentException("No decorators specified!");
             }
-            
+
+            if (decorators.Any(x => !x.IsAssignableTo<TInterface>()))
+            {
+                throw new ArgumentException("Decorator type is incompatible with expected interface!");
+            }
+
             var numOfDecorators = decorators.Length;
 
             builder.RegisterType<TBase>().Named<TInterface>($"{keyBase}-0");
